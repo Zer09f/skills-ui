@@ -9,46 +9,63 @@ import { marked } from 'marked';
 export async function processZip(file) {
   const zip = new JSZip();
   const contents = await zip.loadAsync(file);
-  const skillsMap = {};
+  const skillsMap = {}; // key: parentFolder path (normalized)
+  const skillRoots = [];
 
-  for (const [path, zipEntry] of Object.entries(contents.files)) {
-    if (zipEntry.dir) continue;
+  const allFiles = Object.entries(contents.files)
+    .filter(([_, entry]) => !entry.dir)
+    .map(([path, entry]) => ({
+      path: path.replace(/\\/g, '/'),
+      entry
+    }));
 
-    // Normalize path separators to forward slashes
-    const normalizedPath = path.replace(/\\/g, '/');
-    const parts = normalizedPath.split('/');
+  // Pass 1: Identify skill roots by searching for SKILL.md
+  for (const fileRecord of allFiles) {
+    const normalizedPath = fileRecord.path;
     
-    let skillName, relativePath;
-
-    if (parts.length > 1) {
-      skillName = parts[0];
-      relativePath = parts.slice(1).join('/');
-    } else {
-      skillName = '默认技能';
-      relativePath = normalizedPath;
-    }
-
-    if (!skillsMap[skillName]) {
-      skillsMap[skillName] = {
+    if (normalizedPath === 'SKILL.md' || normalizedPath.endsWith('/SKILL.md')) {
+      const parentPath = normalizedPath.includes('/') 
+        ? normalizedPath.substring(0, normalizedPath.lastIndexOf('/') + 1)
+        : '';
+        
+      skillRoots.push(parentPath);
+      
+      const pathParts = parentPath.split('/').filter(Boolean);
+      const skillName = pathParts.length > 0 ? pathParts[pathParts.length - 1] : '默认技能';
+      
+      const content = await fileRecord.entry.async('string');
+      const parsed = parseSkillMd(content);
+      
+      skillsMap[parentPath] = {
         name: skillName,
         files: {},
-        metadata: null,
-        readme: '',
+        metadata: parsed.metadata,
+        readme: parsed.content,
         rawZip: zip
       };
     }
+  }
 
-    skillsMap[skillName].files[relativePath] = zipEntry;
-
-    if (relativePath === 'SKILL.md') {
-      const content = await zipEntry.async('string');
-      const parsed = parseSkillMd(content);
-      skillsMap[skillName].metadata = parsed.metadata;
-      skillsMap[skillName].readme = parsed.content;
+  // Pass 2: Assign files to the deepest matching skill root
+  for (const fileRecord of allFiles) {
+    const normalizedPath = fileRecord.path;
+    
+    let bestRoot = null;
+    for (const root of skillRoots) {
+      if (normalizedPath.startsWith(root)) {
+        if (!bestRoot || root.length > bestRoot.length) {
+          bestRoot = root;
+        }
+      }
+    }
+    
+    if (bestRoot) {
+      const relativePathInSkill = normalizedPath.substring(bestRoot.length);
+      skillsMap[bestRoot].files[relativePathInSkill] = fileRecord.entry;
     }
   }
 
-  return Object.values(skillsMap).filter(s => s.metadata);
+  return Object.values(skillsMap);
 }
 
 /**
