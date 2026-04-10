@@ -216,32 +216,6 @@ const Dashboard = ({ skills, onReset }) => {
           )}
         </AnimatePresence>
       </main>
-
-      <style jsx global>{`
-        .markdown-content {
-          font-family: 'Inter', sans-serif;
-          line-height: 1.8;
-          color: #d4d4d8;
-        }
-        .markdown-content h1 { font-size: 2.5rem; font-weight: 800; margin: 3rem 0 1.5rem; color: #fff; letter-spacing: -0.03em; }
-        .markdown-content h2 { font-size: 1.8rem; font-weight: 700; margin: 2.5rem 0 1.25rem; color: #f4f4f5; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem; }
-        .markdown-content h3 { font-size: 1.4rem; font-weight: 600; margin: 2rem 0 1rem; color: #e4e4e7; }
-        .markdown-content p { margin-bottom: 1.5rem; font-weight: 300; }
-        .markdown-content ul, .markdown-content ol { margin-bottom: 1.5rem; padding-left: 1.5rem; color: #a1a1aa; }
-        .markdown-content li { margin-bottom: 0.75rem; }
-        .markdown-content strong { color: #fff; font-weight: 700; }
-        .markdown-content code { background: rgba(168, 85, 247, 0.1); color: #c084fc; padding: 0.2rem 0.5rem; border-radius: 0.5rem; font-size: 0.85em; font-family: 'JetBrains Mono'; border: 1px solid rgba(168, 85, 247, 0.2); }
-        .markdown-content pre { background: #080808 !important; padding: 2rem; border-radius: 1.5rem; overflow-x: auto; margin: 2rem 0; border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 0 40px rgba(0,0,0,0.5); }
-        .markdown-content pre code { background: transparent; padding: 0; font-size: 0.9em; color: #e4e4e7; border: none; }
-        .markdown-content blockquote { border-left: 4px solid #a855f7; padding: 1rem 1.5rem; font-style: italic; color: #a1a1aa; background: rgba(168, 85, 247, 0.03); border-radius: 0 1rem 1rem 0; margin: 2rem 0; }
-        .markdown-content hr { border: 0; border-top: 1px solid rgba(255,255,255,0.05); margin: 3rem 0; }
-        .markdown-content img { border-radius: 2rem; margin: 2.5rem 0; shadow: 2xl; border: 1px solid rgba(255,255,255,0.05); }
-        
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(161, 161, 170, 0.1); border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(168, 85, 247, 0.4); }
-      `}</style>
     </div>
   );
 };

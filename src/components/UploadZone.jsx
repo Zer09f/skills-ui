@@ -93,25 +93,6 @@ const UploadZone = ({ onUpload, isLoading, error }) => {
         <div className="w-1 h-1 bg-zinc-800 rounded-full" />
         <div className="text-zinc-600 text-xs font-mono">ROOT.V1.PRO-MAX</div>
       </div>
-
-      <style jsx>{`
-        .glass-card {
-          background: rgba(255, 255, 255, 0.02);
-          backdrop-filter: blur(40px);
-        }
-        .text-gradient-purple {
-          background: linear-gradient(to right, #a855f7, #6366f1);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
-        @keyframes pulse-glow {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 0.6; }
-        }
-        .animate-pulse-glow {
-          animation: pulse-glow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-      `}</style>
     </div>
   );
 };
