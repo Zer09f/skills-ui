@@ -14,12 +14,17 @@ export async function processZip(file) {
   for (const [path, zipEntry] of Object.entries(contents.files)) {
     if (zipEntry.dir) continue;
 
-    // Split path to find top-level directory (skill name)
+    // Determine skill name and relative path
     const parts = path.split('/');
-    if (parts.length < 2) continue; // Root files are ignored for now
+    let skillName, relativePath;
 
-    const skillName = parts[0];
-    const relativePath = parts.slice(1).join('/');
+    if (parts.length > 1) {
+      skillName = parts[0];
+      relativePath = parts.slice(1).join('/');
+    } else {
+      skillName = '默认技能';
+      relativePath = parts[0];
+    }
 
     if (!skillsMap[skillName]) {
       skillsMap[skillName] = {
@@ -41,7 +46,8 @@ export async function processZip(file) {
     }
   }
 
-  return Object.values(skillsMap).filter(s => s.metadata); // Only return folders with SKILL.md
+  const results = Object.values(skillsMap).filter(s => s.metadata);
+  return results;
 }
 
 /**
