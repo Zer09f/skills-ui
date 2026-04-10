@@ -14,8 +14,10 @@ export async function processZip(file) {
   for (const [path, zipEntry] of Object.entries(contents.files)) {
     if (zipEntry.dir) continue;
 
-    // Determine skill name and relative path
-    const parts = path.split('/');
+    // Normalize path separators to forward slashes
+    const normalizedPath = path.replace(/\\/g, '/');
+    const parts = normalizedPath.split('/');
+    
     let skillName, relativePath;
 
     if (parts.length > 1) {
@@ -23,7 +25,7 @@ export async function processZip(file) {
       relativePath = parts.slice(1).join('/');
     } else {
       skillName = '默认技能';
-      relativePath = parts[0];
+      relativePath = normalizedPath;
     }
 
     if (!skillsMap[skillName]) {
@@ -46,8 +48,7 @@ export async function processZip(file) {
     }
   }
 
-  const results = Object.values(skillsMap).filter(s => s.metadata);
-  return results;
+  return Object.values(skillsMap).filter(s => s.metadata);
 }
 
 /**
