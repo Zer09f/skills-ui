@@ -35,8 +35,7 @@ const SkillEditor = ({ metadata, readme, onMetadataChange, onReadmeChange }) => 
                 value={metadata[field.id] || ''}
                 onChange={(e) => handleMetaChange(field.id, e.target.value)}
                 placeholder={field.placeholder}
-                style={{ paddingLeft: '48px', paddingRight: '48px' }}
-                className="w-full bg-white/5 border border-white/5 rounded-2xl py-4 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500/50 transition-all placeholder:text-zinc-600 font-medium"
+                className="w-full bg-white/5 border border-white/5 rounded-2xl py-4 px-12 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500/50 transition-all placeholder:text-zinc-800 font-medium"
               />
             </div>
           ))}
