@@ -11,9 +11,15 @@ import {
   ExternalLink,
   ChevronLeft,
   Menu,
-  Sparkles
+  Sparkles,
+  Edit3,
+  Check,
+  X,
+  Zap
 } from 'lucide-react';
-import { exportSkill, renderMarkdown } from '../lib/utils';
+import { exportSkill, renderMarkdown, analyzeSkillHealth } from '../lib/utils';
+import SkillEditor from './SkillEditor';
+import SkillLinter from './SkillLinter';
 
 const BackgroundBlobs = () => (
   <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10 bg-radial-gradient">
@@ -43,12 +49,49 @@ const Dashboard = ({ skills, onReset }) => {
   const [selectedSkillId, setSelectedSkillId] = useState(skills[0]?.name);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  
+  // Edit State
+  const [isEditing, setIsEditing] = useState(false);
+  const [editMetadata, setEditMetadata] = useState(null);
+  const [editReadme, setEditReadme] = useState('');
 
   const selectedSkill = skills.find(s => s.name === selectedSkillId);
   const filteredSkills = skills.filter(s => 
     s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (s.metadata?.name && s.metadata.name.toLowerCase().includes(searchQuery.toLowerCase()))
   );
+
+  const startEditing = () => {
+    setEditMetadata(selectedSkill.metadata || {});
+    setEditReadme(selectedSkill.readme || '');
+    setIsEditing(true);
+  };
+
+  const cancelEditing = () => {
+    setIsEditing(false);
+  };
+
+  const handleSaveLocal = () => {
+    // In a real app, we might persist this to a global state or IndexedDB
+    // For now, we update the in-memory skill object
+    selectedSkill.metadata = editMetadata;
+    selectedSkill.readme = editReadme;
+    setIsEditing(false);
+  };
+
+  const handleSkillSwitch = (id) => {
+    if (isEditing) {
+      if (!confirm('当前修改尚未保存，确定要切换吗？')) return;
+    }
+    setSelectedSkillId(id);
+    setIsEditing(false);
+  };
+
+  // Analyze health based on current state (draft or saved)
+  const healthAnalysis = analyzeSkillHealth({
+    metadata: isEditing ? editMetadata : selectedSkill?.metadata,
+    readme: isEditing ? editReadme : selectedSkill?.readme
+  });
 
   return (
     <div className="flex h-screen bg-black text-white overflow-hidden font-sans selection:bg-purple-500/30">
@@ -100,7 +143,7 @@ const Dashboard = ({ skills, onReset }) => {
           {filteredSkills.map(skill => (
             <button
               key={skill.name}
-              onClick={() => setSelectedSkillId(skill.name)}
+              onClick={() => handleSkillSwitch(skill.name)}
               className={`w-full group flex items-center gap-4 p-4 rounded-2xl transition-all relative overflow-hidden ${
                 selectedSkillId === skill.name 
                   ? 'bg-purple-500/15 text-white shadow-[0_4px_20px_rgba(168,85,247,0.1)]' 
@@ -168,82 +211,130 @@ const Dashboard = ({ skills, onReset }) => {
                     )}
                   </div>
                   <h1 className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9] text-white">
-                    {selectedSkill.metadata?.name || selectedSkill.name}
+                    {(isEditing ? editMetadata?.name : selectedSkill.metadata?.name) || selectedSkill.name}
                   </h1>
                   <p className="text-zinc-400 text-xl md:text-2xl leading-relaxed max-w-4xl font-light">
-                    {selectedSkill.metadata?.description || "Explore this specialized agent skill and its technical documentation."}
+                    {(isEditing ? editMetadata?.description : selectedSkill.metadata?.description) || "Explore this specialized agent skill and its technical documentation."}
                   </p>
                 </div>
 
-                <div className="flex-shrink-0">
-                  <button 
-                    onClick={() => exportSkill(selectedSkill)}
-                    className="group relative flex items-center gap-4 bg-white text-black px-10 py-5 rounded-2xl font-black transition-all hover:scale-[1.03] active:scale-[0.98] shadow-[0_20px_40px_-10px_rgba(255,255,255,0.2)] overflow-hidden"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                    <Download className="w-6 h-6 group-hover:animate-bounce" />
-                    <span className="uppercase tracking-widest text-sm">Download Package</span>
-                  </button>
+                <div className="flex flex-wrap gap-4">
+                  {!isEditing ? (
+                    <>
+                      <button 
+                        onClick={startEditing}
+                        className="group flex items-center gap-3 bg-white/5 hover:bg-white/10 text-white border border-white/10 px-6 py-4 rounded-2xl font-bold transition-all"
+                      >
+                        <Edit3 className="w-5 h-5 text-purple-400" />
+                        <span>编辑内容</span>
+                      </button>
+                      <button 
+                        onClick={() => exportSkill(selectedSkill)}
+                        className="group relative flex items-center gap-4 bg-white text-black px-10 py-5 rounded-2xl font-black transition-all hover:scale-[1.03] shadow-[0_20px_40px_-10px_rgba(255,255,255,0.2)] overflow-hidden"
+                      >
+                        <Download className="w-6 h-6 group-hover:animate-bounce" />
+                        <span className="uppercase tracking-widest text-sm">Download</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button 
+                        onClick={cancelEditing}
+                        className="flex items-center gap-3 bg-white/5 hover:bg-rose-500/20 text-zinc-400 hover:text-rose-400 border border-white/10 px-6 py-4 rounded-2xl font-bold transition-all"
+                      >
+                        <X className="w-5 h-5" />
+                        <span>丢弃修改</span>
+                      </button>
+                      <button 
+                        onClick={handleSaveLocal}
+                        className="flex items-center gap-3 bg-purple-600 hover:bg-purple-500 text-white px-8 py-4 rounded-2xl font-black transition-all shadow-[0_10px_30px_rgba(168,85,247,0.3)]"
+                      >
+                        <Check className="w-5 h-5" />
+                        <span>保存更新</span>
+                      </button>
+                    </>
+                  )}
                 </div>
               </header>
 
               <div className="grid grid-cols-1 xl:grid-cols-12 gap-12">
                 <div className="xl:col-span-8 space-y-12">
-                  <motion.div 
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.2 }}
-                    className="glass-panel p-10 md:p-16 rounded-[3rem] border border-white/5 glass-card-hover"
-                  >
-                    <div className="flex items-center gap-4 mb-12 pb-8 border-b border-white/5">
-                       <div className="p-3 bg-purple-500/10 rounded-2xl text-purple-400 border border-purple-500/20">
-                         <FileCode2 className="w-8 h-8" />
-                       </div>
-                       <div>
-                         <h3 className="text-2xl font-black tracking-tight">说明文档</h3>
-                         <p className="text-zinc-500 text-sm font-semibold uppercase tracking-widest">SKILL.md Presentation</p>
-                       </div>
-                    </div>
-                    <div 
-                      className="markdown-container prose prose-invert max-w-none"
-                      dangerouslySetInnerHTML={{ __html: renderMarkdown(selectedSkill.readme) }}
-                    />
-                  </motion.div>
+                  {!isEditing ? (
+                    <motion.div 
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.2 }}
+                      className="glass-panel p-10 md:p-16 rounded-[3rem] border border-white/5 glass-card-hover"
+                    >
+                      <div className="flex items-center gap-4 mb-12 pb-8 border-b border-white/5">
+                        <div className="p-3 bg-purple-500/10 rounded-2xl text-purple-400 border border-purple-500/20">
+                          <FileCode2 className="w-8 h-8" />
+                        </div>
+                        <div>
+                          <h3 className="text-2xl font-black tracking-tight">说明文档</h3>
+                          <p className="text-zinc-500 text-sm font-semibold uppercase tracking-widest">SKILL.md Presentation</p>
+                        </div>
+                      </div>
+                      <div 
+                        className="markdown-container prose prose-invert max-w-none"
+                        dangerouslySetInnerHTML={{ __html: renderMarkdown(selectedSkill.readme) }}
+                      />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                    >
+                      <SkillEditor 
+                        metadata={editMetadata}
+                        readme={editReadme}
+                        onMetadataChange={setEditMetadata}
+                        onReadmeChange={setEditReadme}
+                      />
+                    </motion.div>
+                  )}
                 </div>
 
                 <div className="xl:col-span-4 space-y-10">
-                  <div className="glass-panel p-10 rounded-[3rem] border border-white/5 glass-card-hover">
-                    <h3 className="text-xl font-black mb-8 flex items-center gap-3">
-                       <div className="w-1.5 h-6 bg-purple-500 rounded-full" />
-                       资源组件
-                    </h3>
-                    <div className="space-y-3">
-                      {Object.keys(selectedSkill.files).map(path => (
-                        <div key={path} className="flex items-center justify-between p-4 rounded-2xl hover:bg-white/5 text-sm transition-all group border border-transparent hover:border-white/5 cursor-pointer">
-                           <div className="flex items-center gap-4 text-zinc-400 overflow-hidden">
-                             <FileCode2 className="w-4 h-4 flex-shrink-0 group-hover:text-purple-400 group-hover:rotate-12 transition-all" />
-                             <span className="truncate group-hover:text-zinc-100 font-medium">{path}</span>
-                           </div>
-                           <ExternalLink className="w-4 h-4 text-zinc-700 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  {/* Linter Panel */}
+                  <div className="sticky top-10">
+                    <SkillLinter analysis={healthAnalysis} />
 
-                  <div className="p-10 rounded-[3rem] bg-gradient-to-br from-purple-500/10 to-transparent border border-purple-500/20 shadow-[-10px_-10px_30px_rgba(168,85,247,0.05)] relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 blur-[50px] group-hover:bg-purple-500/10 transition-colors" />
-                    <h4 className="text-[11px] font-black text-purple-400 mb-8 uppercase tracking-[0.4em]">Metadata Analysis</h4>
-                    <div className="space-y-6">
-                      {Object.entries(selectedSkill.metadata || {}).map(([key, value]) => {
-                        if (['name', 'description'].includes(key)) return null;
-                        return (
-                          <div key={key} className="space-y-2 border-l-2 border-white/5 pl-4 hover:border-purple-500/30 transition-colors">
-                            <div className="text-[10px] text-zinc-500 uppercase font-black tracking-widest opacity-60">{key.replace(/-/g, ' ')}</div>
-                            <div className="text-base font-bold text-zinc-300 break-words leading-tight">{String(value)}</div>
+                    <div className="mt-10 glass-panel p-10 rounded-[3rem] border border-white/5 glass-card-hover">
+                      <h3 className="text-xl font-black mb-8 flex items-center gap-3">
+                        <div className="w-1.5 h-6 bg-purple-500 rounded-full" />
+                        资源组件
+                      </h3>
+                      <div className="space-y-3">
+                        {Object.keys(selectedSkill.files).map(path => (
+                          <div key={path} className="flex items-center justify-between p-4 rounded-2xl hover:bg-white/5 text-sm transition-all group border border-transparent hover:border-white/5 cursor-pointer">
+                            <div className="flex items-center gap-4 text-zinc-400 overflow-hidden">
+                              <FileCode2 className="w-4 h-4 flex-shrink-0 group-hover:text-purple-400 group-hover:rotate-12 transition-all" />
+                              <span className="truncate group-hover:text-zinc-100 font-medium">{path}</span>
+                            </div>
+                            <ExternalLink className="w-4 h-4 text-zinc-700 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
                           </div>
-                        );
-                      })}
+                        ))}
+                      </div>
                     </div>
+
+                    {!isEditing && (
+                      <div className="mt-10 p-10 rounded-[3rem] bg-gradient-to-br from-purple-500/10 to-transparent border border-purple-500/20 shadow-[-10px_-10px_30px_rgba(168,85,247,0.05)] relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 blur-[50px] group-hover:bg-purple-500/10 transition-colors" />
+                        <h4 className="text-[11px] font-black text-purple-400 mb-8 uppercase tracking-[0.4em]">Metadata Analysis</h4>
+                        <div className="space-y-6">
+                          {Object.entries(selectedSkill.metadata || {}).map(([key, value]) => {
+                            if (['name', 'description'].includes(key)) return null;
+                            return (
+                              <div key={key} className="space-y-2 border-l-2 border-white/5 pl-4 hover:border-purple-500/30 transition-colors">
+                                <div className="text-[10px] text-zinc-500 uppercase font-black tracking-widest opacity-60">{key.replace(/-/g, ' ')}</div>
+                                <div className="text-base font-bold text-zinc-300 break-words leading-tight">{String(value)}</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

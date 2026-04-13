@@ -85,21 +85,78 @@ function parseSkillMd(content) {
 }
 
 /**
- * Exports a single skill folder as a new ZIP file.
+ * Generates SKILL.md content from metadata and readme.
  */
-export async function exportSkill(skill) {
+export function generateSkillMd(metadata, readme) {
+  try {
+    const yamlString = yaml.dump(metadata, { indent: 2, lineWidth: -1 });
+    return `---\n${yamlString}---\n\n${readme}`;
+  } catch (e) {
+    console.error('Failed to generate SKILL.md', e);
+    return readme;
+  }
+}
+
+/**
+ * Analyzes health of a skill.
+ */
+export function analyzeSkillHealth(skill) {
+  const issues = [];
+  let score = 100;
+
+  const metadata = skill.metadata || {};
+  const readme = skill.readme || '';
+
+  if (!metadata.name || metadata.name === 'Unknown') {
+    issues.push({ level: 'error', message: '缺少有效的技能名称 (name)' });
+    score -= 30;
+  }
+  if (!metadata.description) {
+    issues.push({ level: 'warning', message: '缺少技能描述 (description)' });
+    score -= 20;
+  }
+  if (readme.length < 100) {
+    issues.push({ level: 'info', message: '说明文档内容较少，建议补充更详细的指令说明' });
+    score -= 10;
+  }
+  if (!metadata.version) {
+    issues.push({ level: 'info', message: '建议定义版本号 (version) 以便于管理' });
+    score -= 5;
+  }
+
+  return {
+    score: Math.max(0, score),
+    issues,
+    status: score > 80 ? 'healthy' : score > 50 ? 'warning' : 'critical'
+  };
+}
+
+/**
+ * Exports a single skill folder as a new ZIP file.
+ * Now supports optional updated metadata/readme from editor.
+ */
+export async function exportSkill(skill, updatedData = null) {
   const newZip = new JSZip();
   
+  const metadata = updatedData?.metadata || skill.metadata;
+  const readme = updatedData?.readme || skill.readme;
+  const skillMdContent = generateSkillMd(metadata, readme);
+
   for (const [relativePath, zipEntry] of Object.entries(skill.files)) {
-    const content = await zipEntry.async('blob');
-    newZip.file(relativePath, content);
+    // If it's a SKILL.md file, use the newly generated content
+    if (relativePath.endsWith('SKILL.md')) {
+      newZip.file(relativePath, skillMdContent);
+    } else {
+      const content = await zipEntry.async('blob');
+      newZip.file(relativePath, content);
+    }
   }
 
   const blob = await newZip.generateAsync({ type: 'blob' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${skill.metadata.name || skill.name}.zip`;
+  a.download = `${metadata.name || skill.name}.zip`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
