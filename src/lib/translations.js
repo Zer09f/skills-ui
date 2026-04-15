@@ -81,7 +81,6 @@ export const translations = {
     kwFast: '高效响应'
   },
   en: {
-… (rest same)
 
     // UploadZone
     uploadTitle: 'UPLOAD SKILL PACKAGE',
