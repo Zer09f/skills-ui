@@ -59,9 +59,30 @@ export const translations = {
     processTitle: '逻辑处理',
     outputTitle: '结果输出',
     capability: '核心能力',
-    category: '技能类别'
+    category: '技能类别',
+
+    // Categories
+    catTranslation: '翻译与语言',
+    catDevelopment: '开发与编程',
+    catVisualArt: '视觉艺术',
+    catIntelligence: '智能搜寻',
+    catContent: '内容创作',
+    catGeneral: '通用技能',
+
+    // Keywords
+    kwExpert: '专家级',
+    kwLogic: '逻辑推理',
+    kwApi: 'API集成',
+    kwAutomation: '自动化',
+    kwCreative: '内容创作',
+    kwAnalysis: '数据分析',
+    kwSecure: '安全可靠',
+    kwStable: '核心稳定',
+    kwFast: '高效响应'
   },
   en: {
+… (rest same)
+
     // UploadZone
     uploadTitle: 'UPLOAD SKILL PACKAGE',
     uploadSub: 'Industrial Standard .ZIP Required',
@@ -121,7 +142,27 @@ export const translations = {
     processTitle: 'Agent Logic',
     outputTitle: 'Output Result',
     capability: 'Capability',
-    category: 'Category'
+    category: 'Category',
+
+    // Categories
+    catTranslation: 'Translation & Core',
+    catDevelopment: 'Dev & Engineering',
+    catVisualArt: 'Visual Art',
+    catIntelligence: 'Intelligence',
+    catContent: 'Content Creation',
+    catGeneral: 'General Agent',
+
+    // Keywords
+    kwExpert: 'Expert',
+    kwLogic: 'Logic',
+    kwApi: 'API Integration',
+    kwAutomation: 'Automation',
+    kwCreative: 'Creative',
+    kwAnalysis: 'Analysis',
+    kwSecure: 'Secure',
+    kwStable: 'Stable',
+    kwFast: 'High Speed'
   }
 };
+
 

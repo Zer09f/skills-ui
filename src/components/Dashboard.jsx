@@ -72,7 +72,7 @@ const IconMap = {
 };
 
 const VisualSummary = ({ skill, t }) => {
-  const { category, icon, color } = getSkillVisuals(skill);
+  const { categoryKey, icon, color } = getSkillVisuals(skill);
   const keywords = extractKeywords(skill);
   const IconComponent = IconMap[icon] || Zap;
 
@@ -92,11 +92,11 @@ const VisualSummary = ({ skill, t }) => {
       <div className="flex-1 text-center md:text-left space-y-4">
         <div className="flex flex-wrap justify-center md:justify-start gap-3">
           <span className="px-4 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
-            {t('category')}: {category}
+            {t('category')}: {t(categoryKey)}
           </span>
           {keywords.map(kw => (
             <span key={kw} className="px-4 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-[10px] font-black uppercase tracking-[0.2em] text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.1)]">
-              #{kw}
+              #{t(kw)}
             </span>
           ))}
         </div>
@@ -108,6 +108,7 @@ const VisualSummary = ({ skill, t }) => {
     </div>
   );
 };
+
 
 const ProcessFlow = ({ t, color }) => {
   return (
