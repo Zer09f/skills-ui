@@ -31,6 +31,7 @@ const UploadZone = ({ onUpload, isLoading, error }) => {
     const file = e.target.files[0];
     if (file && file.name.endsWith('.zip')) {
       onUpload(file);
+      e.target.value = ''; // Reset to allow re-selection
     }
   };
 

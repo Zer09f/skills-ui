@@ -16,7 +16,18 @@ function App() {
       if (parsedSkills.length === 0) {
         throw new Error('未在 ZIP 文件中找到有效的技能包（缺少 SKILL.md）。');
       }
-      setSkills(parsedSkills);
+      
+      setSkills(prevSkills => {
+        // Create a map of existing skills by name for easy replacement
+        const skillsMap = new Map(prevSkills.map(s => [s.name, s]));
+        
+        // Add or overwrite with new skills
+        parsedSkills.forEach(skill => {
+          skillsMap.set(skill.name, skill);
+        });
+        
+        return Array.from(skillsMap.values());
+      });
     } catch (err) {
       setError(err.message);
       console.error(err);
@@ -35,7 +46,7 @@ function App() {
       {skills.length === 0 ? (
         <UploadZone onUpload={handleFileUpload} isLoading={isLoading} error={error} />
       ) : (
-        <Dashboard skills={skills} onReset={handleReset} />
+        <Dashboard skills={skills} onReset={handleReset} onUpload={handleFileUpload} />
       )}
     </div>
   );

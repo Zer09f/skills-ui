@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, 
@@ -15,7 +15,8 @@ import {
   Edit3,
   Check,
   X,
-  Zap
+  Zap,
+  Plus
 } from 'lucide-react';
 import { exportSkill, renderMarkdown, analyzeSkillHealth } from '../lib/utils';
 import SkillEditor from './SkillEditor';
@@ -45,7 +46,8 @@ const BackgroundBlobs = () => (
   </div>
 );
 
-const Dashboard = ({ skills, onReset }) => {
+const Dashboard = ({ skills, onReset, onUpload }) => {
+  const fileInputRef = useRef(null);
   const [selectedSkillId, setSelectedSkillId] = useState(skills[0]?.name);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -87,6 +89,18 @@ const Dashboard = ({ skills, onReset }) => {
     setIsEditing(false);
   };
 
+  const handleAddClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file && file.name.endsWith('.zip')) {
+      onUpload(file);
+      e.target.value = '';
+    }
+  };
+
   // Analyze health based on current state (draft or saved)
   const healthAnalysis = analyzeSkillHealth({
     metadata: isEditing ? editMetadata : selectedSkill?.metadata,
@@ -96,6 +110,15 @@ const Dashboard = ({ skills, onReset }) => {
   return (
     <div className="flex h-screen bg-black text-white overflow-hidden font-sans selection:bg-purple-500/30">
       <BackgroundBlobs />
+      
+      {/* Hidden File Input for Adding Skills */}
+      <input
+        type="file"
+        accept=".zip"
+        onChange={handleFileChange}
+        ref={fileInputRef}
+        className="hidden"
+      />
       
       {/* Sidebar */}
       <motion.aside 
@@ -116,12 +139,21 @@ const Dashboard = ({ skills, onReset }) => {
               <h2 className="text-2xl font-black tracking-tighter text-gradient-neon">Skill Hub</h2>
             </motion.div>
           )}
-          <button 
-            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            className="p-2.5 hover:bg-white/5 border border-transparent hover:border-white/10 rounded-xl transition-all text-zinc-500 hover:text-white group"
-          >
-            {isSidebarCollapsed ? <Menu className="w-5 h-5 group-hover:scale-110" /> : <ChevronLeft className="w-5 h-5 group-hover:scale-110" />}
-          </button>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={handleAddClick}
+              className="p-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 rounded-lg border border-purple-500/20 transition-all hover:scale-110 active:scale-95 group/add"
+              title="添加新技能包"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+            <button 
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              className="p-2.5 hover:bg-white/5 border border-transparent hover:border-white/10 rounded-xl transition-all text-zinc-500 hover:text-white group"
+            >
+              {isSidebarCollapsed ? <Menu className="w-5 h-5 group-hover:scale-110" /> : <ChevronLeft className="w-5 h-5 group-hover:scale-110" />}
+            </button>
+          </div>
         </div>
 
         {!isSidebarCollapsed && (
@@ -199,7 +231,7 @@ const Dashboard = ({ skills, onReset }) => {
               className="p-10 md:p-24 max-w-7xl mx-auto"
             >
               <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-12 mb-20">
-                <div className="flex-1 space-y-8">
+                <div className="flex-1 space-y-12">
                   <div className="flex items-center gap-4">
                     <span className="px-4 py-1.5 bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-[10px] font-black rounded-full border border-white/20 shadow-[0_0_20px_rgba(168,85,247,0.3)] tracking-[0.3em] uppercase">
                       CORE AGENT SKILL
