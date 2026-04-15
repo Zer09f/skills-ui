@@ -16,9 +16,24 @@ import {
   Check,
   X,
   Zap,
-  Plus
+  Plus,
+  Cpu,
+  ArrowRight,
+  Database,
+  Globe,
+  Image,
+  Languages,
+  Terminal,
+  PenTool,
+  Brain
 } from 'lucide-react';
-import { exportSkill, renderMarkdown, analyzeSkillHealth } from '../lib/utils';
+import { 
+  exportSkill, 
+  renderMarkdown, 
+  analyzeSkillHealth, 
+  getSkillVisuals, 
+  extractKeywords 
+} from '../lib/utils';
 import SkillEditor from './SkillEditor';
 import SkillLinter from './SkillLinter';
 
@@ -45,6 +60,125 @@ const BackgroundBlobs = () => (
     />
   </div>
 );
+
+const IconMap = {
+  Languages,
+  Terminal,
+  Image,
+  Globe,
+  PenTool,
+  Zap,
+  Brain
+};
+
+const VisualSummary = ({ skill, t }) => {
+  const { category, icon, color } = getSkillVisuals(skill);
+  const keywords = extractKeywords(skill);
+  const IconComponent = IconMap[icon] || Zap;
+
+  return (
+    <div className="flex flex-col md:flex-row items-center gap-10 p-10 rounded-[3rem] bg-white/[0.02] border border-white/5 mb-16 relative overflow-hidden group font-sans">
+      <div className={`absolute top-0 right-0 w-64 h-64 bg-gradient-to-br ${color} opacity-[0.03] blur-[100px] group-hover:opacity-[0.08] transition-all duration-1000`} />
+      
+      <div className={`p-8 rounded-[2.5rem] bg-gradient-to-br ${color} bg-opacity-10 border border-white/10 shadow-2xl relative`}>
+        <IconComponent className="w-16 h-16 text-white" />
+        <motion.div 
+           animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+           transition={{ duration: 4, repeat: Infinity }}
+           className="absolute -top-2 -right-2 w-6 h-6 bg-white rounded-full blur-md opacity-50"
+        />
+      </div>
+
+      <div className="flex-1 text-center md:text-left space-y-4">
+        <div className="flex flex-wrap justify-center md:justify-start gap-3">
+          <span className="px-4 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
+            {t('category')}: {category}
+          </span>
+          {keywords.map(kw => (
+            <span key={kw} className="px-4 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-[10px] font-black uppercase tracking-[0.2em] text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.1)]">
+              #{kw}
+            </span>
+          ))}
+        </div>
+        <h3 className="text-3xl font-black tracking-tight text-white">{t('capability')}</h3>
+        <p className="text-zinc-500 font-medium max-w-2xl italic leading-relaxed">
+          {skill.metadata?.description || t('defaultDesc')}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+const ProcessFlow = ({ t, color }) => {
+  return (
+    <div className="glass-panel p-10 rounded-[3rem] border border-white/5 mb-16 overflow-hidden relative font-sans">
+      <h3 className="text-xl font-black mb-12 flex items-center gap-3">
+        <div className="w-1.5 h-6 bg-purple-500 rounded-full" />
+        {t('visualWorkflow')}
+      </h3>
+
+      <div className="flex flex-col lg:flex-row items-center justify-between gap-8 relative">
+        {/* Connection Line */}
+        <div className="absolute top-1/2 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent hidden lg:block -translate-y-1/2 z-0" />
+        
+        {/* Step 1: Input */}
+        <div className="flex flex-col items-center gap-4 relative z-10 w-full lg:w-1/3">
+          <div className="w-20 h-20 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center group hover:border-blue-500/50 transition-all duration-500 relative">
+            <motion.div 
+               animate={{ y: [0, -5, 0] }}
+               transition={{ duration: 2, repeat: Infinity }}
+            >
+              <Database className="w-8 h-8 text-blue-400" />
+            </motion.div>
+            <div className="absolute -inset-2 bg-blue-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+          <div className="text-center">
+            <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">{t('inputTitle')}</div>
+            <div className="text-sm font-bold text-zinc-300">USER.QUERY.DETECTION</div>
+          </div>
+        </div>
+
+        <ArrowRight className="w-6 h-6 text-zinc-700 hidden lg:block" />
+
+        {/* Step 2: Logic */}
+        <div className="flex flex-col items-center gap-4 relative z-10 w-full lg:w-1/3">
+          <div className="w-24 h-24 rounded-3xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center group hover:border-purple-500 transition-all duration-500 relative">
+            <motion.div 
+               animate={{ rotate: 360 }}
+               transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+            >
+              <Cpu className="w-10 h-10 text-purple-400" />
+            </motion.div>
+            <div className="absolute -inset-4 bg-purple-500/20 blur-2xl animate-pulse" />
+          </div>
+          <div className="text-center">
+            <div className="text-[10px] font-black uppercase tracking-widest text-purple-400 mb-1">{t('processTitle')}</div>
+            <div className="text-sm font-bold text-white">NEURAL.CORE.V3</div>
+          </div>
+        </div>
+
+        <ArrowRight className="w-6 h-6 text-zinc-700 hidden lg:block" />
+
+        {/* Step 3: Output */}
+        <div className="flex flex-col items-center gap-4 relative z-10 w-full lg:w-1/3">
+          <div className="w-20 h-20 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center group hover:border-emerald-500/50 transition-all duration-500 relative">
+             <motion.div 
+               animate={{ scale: [1, 1.1, 1] }}
+               transition={{ duration: 1.5, repeat: Infinity }}
+            >
+              <Check className="w-8 h-8 text-emerald-400" />
+            </motion.div>
+            <div className="absolute -inset-2 bg-emerald-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+          <div className="text-center">
+            <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">{t('outputTitle')}</div>
+            <div className="text-sm font-bold text-zinc-300">EXPECTED.EXECUTION</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Dashboard = ({ skills, onReset, onUpload, onUpdateSkill, lang, setLang, t }) => {
   const fileInputRef = useRef(null);
@@ -107,6 +241,8 @@ const Dashboard = ({ skills, onReset, onUpload, onUpdateSkill, lang, setLang, t 
     metadata: isEditing ? editMetadata : selectedSkill?.metadata,
     readme: isEditing ? editReadme : selectedSkill?.readme
   }, t);
+
+  const { color } = selectedSkill ? getSkillVisuals(selectedSkill) : { color: 'from-purple-500 to-indigo-400' };
 
   return (
     <div className="flex h-screen bg-black text-white overflow-hidden font-sans selection:bg-purple-500/30">
@@ -184,39 +320,43 @@ const Dashboard = ({ skills, onReset, onUpload, onUpdateSkill, lang, setLang, t 
         )}
 
         <nav className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
-          {filteredSkills.map(skill => (
-            <button
-              key={skill.name}
-              onClick={() => handleSkillSwitch(skill.name)}
-              className={`w-full group flex items-center gap-4 p-4 rounded-2xl transition-all relative overflow-hidden ${
-                selectedSkillId === skill.name 
-                  ? 'bg-purple-500/15 text-white shadow-[0_4px_20px_rgba(168,85,247,0.1)]' 
-                  : 'hover:bg-white/5 text-zinc-400 hover:text-zinc-200'
-              }`}
-            >
-              <div className={`p-2.5 rounded-xl flex-shrink-0 transition-all duration-500 ${
-                selectedSkillId === skill.name ? 'bg-purple-500/20 text-purple-400 scale-110 rotate-3' : 'bg-zinc-900/50 text-zinc-600'
-              }`}>
-                <Layers className="w-5 h-5" />
-              </div>
-              
-              {!isSidebarCollapsed && (
-                <div className="text-left overflow-hidden flex-1">
-                  <div className={`font-bold text-[15px] truncate transition-colors ${selectedSkillId === skill.name ? 'text-white' : 'group-hover:text-zinc-200'}`}>
-                    {skill.metadata?.name || skill.name}
-                  </div>
-                  <div className="text-[10px] text-zinc-500 truncate uppercase tracking-[0.15em] mt-1 font-semibold opacity-70 italic">{skill.name}</div>
+          {filteredSkills.map(skill => {
+             const { icon } = getSkillVisuals(skill);
+             const ListIcon = IconMap[icon] || Layers;
+             return (
+              <button
+                key={skill.name}
+                onClick={() => handleSkillSwitch(skill.name)}
+                className={`w-full group flex items-center gap-4 p-4 rounded-2xl transition-all relative overflow-hidden ${
+                  selectedSkillId === skill.name 
+                    ? 'bg-purple-500/15 text-white shadow-[0_4px_20px_rgba(168,85,247,0.1)]' 
+                    : 'hover:bg-white/5 text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                <div className={`p-2.5 rounded-xl flex-shrink-0 transition-all duration-500 ${
+                  selectedSkillId === skill.name ? 'bg-purple-500/20 text-purple-400 scale-110 rotate-3' : 'bg-zinc-900/50 text-zinc-600'
+                }`}>
+                  <ListIcon className="w-5 h-5" />
                 </div>
-              )}
+                
+                {!isSidebarCollapsed && (
+                  <div className="text-left overflow-hidden flex-1">
+                    <div className={`font-bold text-[15px] truncate transition-colors ${selectedSkillId === skill.name ? 'text-white' : 'group-hover:text-zinc-200'}`}>
+                      {skill.metadata?.name || skill.name}
+                    </div>
+                    <div className="text-[10px] text-zinc-500 truncate uppercase tracking-[0.15em] mt-1 font-semibold opacity-70 italic">{skill.name}</div>
+                  </div>
+                )}
 
-              {selectedSkillId === skill.name && (
-                <motion.div 
-                  layoutId="active-neon-bar"
-                  className="active-neon-bar"
-                />
-              )}
-            </button>
-          ))}
+                {selectedSkillId === skill.name && (
+                  <motion.div 
+                    layoutId="active-neon-bar"
+                    className="active-neon-bar"
+                  />
+                )}
+              </button>
+             );
+          })}
         </nav>
 
         <div className={`p-6 border-t border-white/5 ${isSidebarCollapsed ? 'flex justify-center' : ''}`}>
@@ -257,9 +397,6 @@ const Dashboard = ({ skills, onReset, onUpload, onUpdateSkill, lang, setLang, t 
                   <h1 className="text-6xl md:text-8xl font-black tracking-tighter leading-tight text-white transition-all">
                     {(isEditing ? editMetadata?.name : selectedSkill.metadata?.name) || selectedSkill.name}
                   </h1>
-                  <p className="text-zinc-400 text-xl md:text-2xl leading-relaxed max-w-4xl font-light tracking-tight italic opacity-90">
-                    {(isEditing ? editMetadata?.description : selectedSkill.metadata?.description) || t('defaultDesc')}
-                  </p>
                 </div>
 
 
@@ -301,6 +438,9 @@ const Dashboard = ({ skills, onReset, onUpload, onUpdateSkill, lang, setLang, t 
                   )}
                 </div>
               </header>
+
+              {!isEditing && <VisualSummary skill={selectedSkill} t={t} />}
+              {!isEditing && <ProcessFlow t={t} color={color} />}
 
               <div className="grid grid-cols-1 xl:grid-cols-12 gap-12">
                 <div className="xl:col-span-8 space-y-12">
@@ -404,6 +544,5 @@ const Dashboard = ({ skills, onReset, onUpload, onUpdateSkill, lang, setLang, t 
     </div>
   );
 };
-
 
 export default Dashboard;

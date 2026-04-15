@@ -51,7 +51,15 @@ export const translations = {
     issueName: '缺少有效的技能名称 (name)',
     issueDesc: '缺少技能描述 (description)',
     issueReadme: '说明文档内容较少，建议补充更详细的指令说明',
-    issueVersion: '建议定义版本号 (version) 以便于管理'
+    issueVersion: '建议定义版本号 (version) 以便于管理',
+
+    // Visuals
+    visualWorkflow: '处理流可视化',
+    inputTitle: '用户输入',
+    processTitle: '逻辑处理',
+    outputTitle: '结果输出',
+    capability: '核心能力',
+    category: '技能类别'
   },
   en: {
     // UploadZone
@@ -105,6 +113,15 @@ export const translations = {
     issueName: 'Missing valid skill name',
     issueDesc: 'Missing skill description',
     issueReadme: 'Readme content is too short; consider adding detailed instructions',
-    issueVersion: 'Recommended to define a version for better management'
+    issueVersion: 'Recommended to define a version for better management',
+
+    // Visuals
+    visualWorkflow: 'Processing Flow',
+    inputTitle: 'User Input',
+    processTitle: 'Agent Logic',
+    outputTitle: 'Output Result',
+    capability: 'Capability',
+    category: 'Category'
   }
 };
+

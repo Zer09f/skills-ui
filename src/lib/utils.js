@@ -135,7 +135,51 @@ export function analyzeSkillHealth(skill, t) {
 
 
 /**
+ * Infers category and icon based on skill content.
+ */
+export function getSkillVisuals(skill) {
+  const text = (skill.name + ' ' + (skill.metadata?.description || '')).toLowerCase();
+  
+  if (text.includes('translate') || text.includes('language') || text.includes('多语言')) {
+    return { category: 'Translation', icon: 'Languages', color: 'from-blue-500 to-cyan-400' };
+  }
+  if (text.includes('code') || text.includes('dev') || text.includes('program') || text.includes('代码')) {
+    return { category: 'Development', icon: 'Terminal', color: 'from-emerald-500 to-teal-400' };
+  }
+  if (text.includes('image') || text.includes('vision') || text.includes('draw') || text.includes('图片')) {
+    return { category: 'Visual Art', icon: 'Image', color: 'from-purple-500 to-pink-400' };
+  }
+  if (text.includes('search') || text.includes('web') || text.includes('find') || text.includes('搜索')) {
+    return { category: 'Intelligence', icon: 'Globe', color: 'from-orange-500 to-amber-400' };
+  }
+  if (text.includes('write') || text.includes('copy') || text.includes('creative') || text.includes('写作')) {
+    return { category: 'Content', icon: 'PenTool', color: 'from-rose-500 to-orange-400' };
+  }
+  
+  return { category: 'General Agent', icon: 'Zap', color: 'from-purple-500 to-indigo-400' };
+}
+
+/**
+ * Extracts top keywords for badges.
+ */
+export function extractKeywords(skill) {
+  const desc = skill.metadata?.description || '';
+  const name = skill.name;
+  const combined = (name + ' ' + desc).toLowerCase();
+  
+  const commonKeywords = [
+    'expert', 'pro', 'logic', 'api', 'automation', 'creative', 'analysis', 
+    'fast', 'secure', 'minimal', 'stable', 'v3', 'engine', 'core',
+    '专家', '自动化', '逻辑', '分析', '创作', '核心', '引擎'
+  ];
+  
+  const found = commonKeywords.filter(k => combined.includes(k.toLowerCase()));
+  return Array.from(new Set([...found])).slice(0, 3);
+}
+
+/**
  * Exports a single skill folder as a new ZIP file.
+... (existing rest of file)
  * Now supports optional updated metadata/readme from editor.
  */
 export async function exportSkill(skill, updatedData = null) {
