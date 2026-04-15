@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { processZip } from './lib/utils';
+import { translations } from './lib/translations';
 import UploadZone from './components/UploadZone';
 import Dashboard from './components/Dashboard';
 
@@ -7,6 +8,9 @@ function App() {
   const [skills, setSkills] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [lang, setLang] = useState('zh');
+
+  const t = (key) => translations[lang][key] || key;
 
   const handleFileUpload = async (file) => {
     setIsLoading(true);
@@ -36,6 +40,16 @@ function App() {
     }
   };
 
+  const handleUpdateSkill = (skillName, updatedData) => {
+    setSkills(prevSkills => 
+      prevSkills.map(skill => 
+        skill.name === skillName 
+          ? { ...skill, ...updatedData } 
+          : skill
+      )
+    );
+  };
+
   const handleReset = () => {
     setSkills([]);
     setError(null);
@@ -44,12 +58,29 @@ function App() {
   return (
     <div className="app-container min-h-screen">
       {skills.length === 0 ? (
-        <UploadZone onUpload={handleFileUpload} isLoading={isLoading} error={error} />
+        <UploadZone 
+          onUpload={handleFileUpload} 
+          isLoading={isLoading} 
+          error={error} 
+          lang={lang}
+          setLang={setLang}
+          t={t}
+        />
       ) : (
-        <Dashboard skills={skills} onReset={handleReset} onUpload={handleFileUpload} />
+        <Dashboard 
+          skills={skills} 
+          onReset={handleReset} 
+          onUpload={handleFileUpload} 
+          onUpdateSkill={handleUpdateSkill}
+          lang={lang}
+          setLang={setLang}
+          t={t}
+        />
       )}
     </div>
   );
+
+
 }
 
 export default App;

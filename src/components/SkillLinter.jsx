@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ShieldCheck, ShieldAlert, ShieldX, Info, AlertTriangle, XCircle } from 'lucide-react';
 
-const SkillLinter = ({ analysis }) => {
+const SkillLinter = ({ analysis, t }) => {
   const { score, issues, status } = analysis;
 
   const getStatusColor = () => {
@@ -31,13 +31,13 @@ const SkillLinter = ({ analysis }) => {
             {getStatusIcon()}
           </div>
           <div>
-            <h3 className="text-lg font-black tracking-tight">健康度诊断</h3>
-            <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">Skill Health Score</p>
+            <h3 className="text-lg font-black tracking-tight">{t('healthDiagnostic')}</h3>
+            <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">{t('healthScore')}</p>
           </div>
         </div>
         <div className="text-right">
           <div className={`text-3xl font-black ${getStatusColor()}`}>{score}</div>
-          <div className="text-[10px] text-zinc-600 font-bold uppercase">Points</div>
+          <div className="text-[10px] text-zinc-600 font-bold uppercase">{t('points')}</div>
         </div>
       </div>
 
@@ -45,7 +45,7 @@ const SkillLinter = ({ analysis }) => {
         {issues.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-40 text-center space-y-3 opacity-40">
             <ShieldCheck className="w-12 h-12 text-emerald-500" />
-            <p className="text-sm font-medium">完美无瑕！技能包符合所有规范。</p>
+            <p className="text-sm font-medium">{t('perfect')}</p>
           </div>
         ) : (
           issues.map((issue, idx) => (
@@ -70,12 +70,13 @@ const SkillLinter = ({ analysis }) => {
       <div className="mt-8 pt-6 border-t border-white/5">
         <div className="bg-purple-500/10 rounded-2xl p-4 border border-purple-500/20">
           <p className="text-[10px] text-purple-300 leading-relaxed font-medium">
-            提示：高评分代表更清晰的 Agent 指令逻辑和更完善的元数据定义，有助于提高在不同平台部署的兼容性。
+            {t('linterTip')}
           </p>
         </div>
       </div>
     </div>
   );
 };
+
 
 export default SkillLinter;

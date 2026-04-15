@@ -72,17 +72,19 @@ export async function processZip(file) {
  * Parses SKILL.md content to extract YAML frontmatter and Markdown body.
  */
 function parseSkillMd(content) {
-  const match = content.match(/^---([\s\S]*?)---([\s\S]*)$/);
+  // Relaxed regex to handle leading whitespace/BOM and trailing content
+  const match = content.match(/^\s*---([\s\S]*?)---\s*([\s\S]*)$/);
   if (match) {
     try {
       const metadata = yaml.load(match[1]);
-      return { metadata, content: match[2].trim() };
+      return { metadata: metadata || {}, content: match[2].trim() };
     } catch (e) {
       console.error('Failed to parse YAML frontmatter', e);
     }
   }
   return { metadata: { name: 'Unknown' }, content };
 }
+
 
 /**
  * Generates SKILL.md content from metadata and readme.
@@ -100,7 +102,7 @@ export function generateSkillMd(metadata, readme) {
 /**
  * Analyzes health of a skill.
  */
-export function analyzeSkillHealth(skill) {
+export function analyzeSkillHealth(skill, t) {
   const issues = [];
   let score = 100;
 
@@ -108,19 +110,19 @@ export function analyzeSkillHealth(skill) {
   const readme = skill.readme || '';
 
   if (!metadata.name || metadata.name === 'Unknown') {
-    issues.push({ level: 'error', message: '缺少有效的技能名称 (name)' });
+    issues.push({ level: 'error', message: t('issueName') });
     score -= 30;
   }
   if (!metadata.description) {
-    issues.push({ level: 'warning', message: '缺少技能描述 (description)' });
+    issues.push({ level: 'warning', message: t('issueDesc') });
     score -= 20;
   }
   if (readme.length < 100) {
-    issues.push({ level: 'info', message: '说明文档内容较少，建议补充更详细的指令说明' });
+    issues.push({ level: 'info', message: t('issueReadme') });
     score -= 10;
   }
   if (!metadata.version) {
-    issues.push({ level: 'info', message: '建议定义版本号 (version) 以便于管理' });
+    issues.push({ level: 'info', message: t('issueVersion') });
     score -= 5;
   }
 
@@ -130,6 +132,7 @@ export function analyzeSkillHealth(skill) {
     status: score > 80 ? 'healthy' : score > 50 ? 'warning' : 'critical'
   };
 }
+
 
 /**
  * Exports a single skill folder as a new ZIP file.
@@ -143,14 +146,17 @@ export async function exportSkill(skill, updatedData = null) {
   const skillMdContent = generateSkillMd(metadata, readme);
 
   for (const [relativePath, zipEntry] of Object.entries(skill.files)) {
-    // If it's a SKILL.md file, use the newly generated content
-    if (relativePath.endsWith('SKILL.md')) {
+    // Determine if this is the core SKILL.md (either at root or the only child of a nested root)
+    const isRootSkillMd = relativePath === 'SKILL.md';
+    
+    if (isRootSkillMd) {
       newZip.file(relativePath, skillMdContent);
     } else {
       const content = await zipEntry.async('blob');
       newZip.file(relativePath, content);
     }
   }
+
 
   const blob = await newZip.generateAsync({ type: 'blob' });
   const url = URL.createObjectURL(blob);

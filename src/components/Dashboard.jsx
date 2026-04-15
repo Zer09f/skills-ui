@@ -46,7 +46,7 @@ const BackgroundBlobs = () => (
   </div>
 );
 
-const Dashboard = ({ skills, onReset, onUpload }) => {
+const Dashboard = ({ skills, onReset, onUpload, onUpdateSkill, lang, setLang, t }) => {
   const fileInputRef = useRef(null);
   const [selectedSkillId, setSelectedSkillId] = useState(skills[0]?.name);
   const [searchQuery, setSearchQuery] = useState('');
@@ -74,16 +74,17 @@ const Dashboard = ({ skills, onReset, onUpload }) => {
   };
 
   const handleSaveLocal = () => {
-    // In a real app, we might persist this to a global state or IndexedDB
-    // For now, we update the in-memory skill object
-    selectedSkill.metadata = editMetadata;
-    selectedSkill.readme = editReadme;
+    onUpdateSkill(selectedSkill.name, {
+      metadata: editMetadata,
+      readme: editReadme
+    });
     setIsEditing(false);
   };
 
+
   const handleSkillSwitch = (id) => {
     if (isEditing) {
-      if (!confirm('当前修改尚未保存，确定要切换吗？')) return;
+      if (!confirm(t('confirmSwitch'))) return;
     }
     setSelectedSkillId(id);
     setIsEditing(false);
@@ -105,7 +106,7 @@ const Dashboard = ({ skills, onReset, onUpload }) => {
   const healthAnalysis = analyzeSkillHealth({
     metadata: isEditing ? editMetadata : selectedSkill?.metadata,
     readme: isEditing ? editReadme : selectedSkill?.readme
-  });
+  }, t);
 
   return (
     <div className="flex h-screen bg-black text-white overflow-hidden font-sans selection:bg-purple-500/30">
@@ -136,14 +137,14 @@ const Dashboard = ({ skills, onReset, onUpload }) => {
               <div className="p-2.5 bg-gradient-to-br from-purple-500/20 to-purple-500/5 rounded-xl border border-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
                 <Sparkles className="w-5 h-5 text-purple-400" />
               </div>
-              <h2 className="text-2xl font-black tracking-tighter text-gradient-neon">Skill Hub</h2>
+              <h2 className="text-2xl font-black tracking-tighter text-gradient-neon">{t('skillHub')}</h2>
             </motion.div>
           )}
           <div className="flex items-center gap-3">
             <button 
               onClick={handleAddClick}
               className="p-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 rounded-lg border border-purple-500/20 transition-all hover:scale-110 active:scale-95 group/add"
-              title="添加新技能包"
+              title={t('addNew')}
             >
               <Plus className="w-4 h-4" />
             </button>
@@ -157,12 +158,23 @@ const Dashboard = ({ skills, onReset, onUpload }) => {
         </div>
 
         {!isSidebarCollapsed && (
-          <div className="p-8 pb-4">
+          <div className="p-8 pb-4 space-y-4">
+             {/* Language Switcher Small */}
+             <div className="flex items-center justify-between px-2">
+               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">UI Language</span>
+               <button 
+                 onClick={() => setLang(lang === 'zh' ? 'en' : 'zh')}
+                 className="text-[10px] font-black uppercase px-2 py-1 rounded bg-white/5 border border-white/5 hover:bg-purple-500/10 hover:border-purple-500/20 text-zinc-500 hover:text-purple-400 transition-all"
+               >
+                 {lang === 'zh' ? 'English' : '中文'}
+               </button>
+             </div>
+
             <div className="relative group">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-focus-within:text-purple-400 transition-colors" />
               <input
                 type="text"
-                placeholder="搜索技能..."
+                placeholder={t('searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-white/5 border border-white/5 rounded-2xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500/50 transition-all placeholder:text-zinc-600 font-medium"
@@ -213,7 +225,7 @@ const Dashboard = ({ skills, onReset, onUpload }) => {
             className={`flex items-center gap-3 text-zinc-500 hover:text-white transition-all text-xs font-bold uppercase tracking-widest ${isSidebarCollapsed ? 'p-3 hover:scale-110' : 'w-full py-4 px-2 hover:bg-white/5 rounded-2xl'}`}
           >
             <ArrowLeft className="w-4 h-4 text-purple-500" />
-            {!isSidebarCollapsed && "重新上传技能包"}
+            {!isSidebarCollapsed && t('reUpload')}
           </button>
         </div>
       </motion.aside>
@@ -230,25 +242,26 @@ const Dashboard = ({ skills, onReset, onUpload }) => {
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               className="p-10 md:p-24 max-w-7xl mx-auto"
             >
-              <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-12 mb-20">
+              <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-16 mb-24">
                 <div className="flex-1 space-y-12">
-                  <div className="flex items-center gap-4">
-                    <span className="px-4 py-1.5 bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-[10px] font-black rounded-full border border-white/20 shadow-[0_0_20px_rgba(168,85,247,0.3)] tracking-[0.3em] uppercase">
-                      CORE AGENT SKILL
+                  <div className="flex items-center gap-6">
+                    <span className="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-[10px] font-black rounded-full border border-white/20 shadow-[0_0_25px_rgba(168,85,247,0.3)] tracking-[0.3em] uppercase">
+                      {t('coreAgentSkill')}
                     </span>
                     {selectedSkill.metadata?.license && (
-                      <span className="text-zinc-500 text-[11px] font-bold uppercase tracking-widest bg-white/5 px-3 py-1 rounded-md">
+                      <span className="text-zinc-500 text-[11px] font-bold uppercase tracking-widest bg-white/5 px-4 py-1.5 rounded-md border border-white/5">
                         {selectedSkill.metadata.license}
                       </span>
                     )}
                   </div>
-                  <h1 className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9] text-white">
+                  <h1 className="text-6xl md:text-8xl font-black tracking-tighter leading-tight text-white transition-all">
                     {(isEditing ? editMetadata?.name : selectedSkill.metadata?.name) || selectedSkill.name}
                   </h1>
-                  <p className="text-zinc-400 text-xl md:text-2xl leading-relaxed max-w-4xl font-light">
-                    {(isEditing ? editMetadata?.description : selectedSkill.metadata?.description) || "Explore this specialized agent skill and its technical documentation."}
+                  <p className="text-zinc-400 text-xl md:text-2xl leading-relaxed max-w-4xl font-light tracking-tight italic opacity-90">
+                    {(isEditing ? editMetadata?.description : selectedSkill.metadata?.description) || t('defaultDesc')}
                   </p>
                 </div>
+
 
                 <div className="flex flex-wrap gap-4">
                   {!isEditing ? (
@@ -258,14 +271,14 @@ const Dashboard = ({ skills, onReset, onUpload }) => {
                         className="group flex items-center gap-3 bg-white/5 hover:bg-white/10 text-white border border-white/10 px-6 py-4 rounded-2xl font-bold transition-all"
                       >
                         <Edit3 className="w-5 h-5 text-purple-400" />
-                        <span>编辑内容</span>
+                        <span>{t('editContent')}</span>
                       </button>
                       <button 
                         onClick={() => exportSkill(selectedSkill)}
                         className="group relative flex items-center gap-4 bg-white text-black px-10 py-5 rounded-2xl font-black transition-all hover:scale-[1.03] shadow-[0_20px_40px_-10px_rgba(255,255,255,0.2)] overflow-hidden"
                       >
                         <Download className="w-6 h-6 group-hover:animate-bounce" />
-                        <span className="uppercase tracking-widest text-sm">Download</span>
+                        <span className="uppercase tracking-widest text-sm">{t('download')}</span>
                       </button>
                     </>
                   ) : (
@@ -275,14 +288,14 @@ const Dashboard = ({ skills, onReset, onUpload }) => {
                         className="flex items-center gap-3 bg-white/5 hover:bg-rose-500/20 text-zinc-400 hover:text-rose-400 border border-white/10 px-6 py-4 rounded-2xl font-bold transition-all"
                       >
                         <X className="w-5 h-5" />
-                        <span>丢弃修改</span>
+                        <span>{t('discardChanges')}</span>
                       </button>
                       <button 
                         onClick={handleSaveLocal}
                         className="flex items-center gap-3 bg-purple-600 hover:bg-purple-500 text-white px-8 py-4 rounded-2xl font-black transition-all shadow-[0_10px_30px_rgba(168,85,247,0.3)]"
                       >
                         <Check className="w-5 h-5" />
-                        <span>保存更新</span>
+                        <span>{t('saveUpdate')}</span>
                       </button>
                     </>
                   )}
@@ -303,7 +316,7 @@ const Dashboard = ({ skills, onReset, onUpload }) => {
                           <FileCode2 className="w-8 h-8" />
                         </div>
                         <div>
-                          <h3 className="text-2xl font-black tracking-tight">说明文档</h3>
+                          <h3 className="text-2xl font-black tracking-tight">{t('documentation')}</h3>
                           <p className="text-zinc-500 text-sm font-semibold uppercase tracking-widest">SKILL.md Presentation</p>
                         </div>
                       </div>
@@ -322,6 +335,7 @@ const Dashboard = ({ skills, onReset, onUpload }) => {
                         readme={editReadme}
                         onMetadataChange={setEditMetadata}
                         onReadmeChange={setEditReadme}
+                        t={t}
                       />
                     </motion.div>
                   )}
@@ -330,12 +344,12 @@ const Dashboard = ({ skills, onReset, onUpload }) => {
                 <div className="xl:col-span-4 space-y-10">
                   {/* Linter Panel */}
                   <div className="sticky top-10">
-                    <SkillLinter analysis={healthAnalysis} />
+                    <SkillLinter analysis={healthAnalysis} t={t} />
 
                     <div className="mt-10 glass-panel p-10 rounded-[3rem] border border-white/5 glass-card-hover">
                       <h3 className="text-xl font-black mb-8 flex items-center gap-3">
                         <div className="w-1.5 h-6 bg-purple-500 rounded-full" />
-                        资源组件
+                        {t('resourceComponents')}
                       </h3>
                       <div className="space-y-3">
                         {Object.keys(selectedSkill.files).map(path => (
@@ -353,7 +367,7 @@ const Dashboard = ({ skills, onReset, onUpload }) => {
                     {!isEditing && (
                       <div className="mt-10 p-10 rounded-[3rem] bg-gradient-to-br from-purple-500/10 to-transparent border border-purple-500/20 shadow-[-10px_-10px_30px_rgba(168,85,247,0.05)] relative overflow-hidden group">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 blur-[50px] group-hover:bg-purple-500/10 transition-colors" />
-                        <h4 className="text-[11px] font-black text-purple-400 mb-8 uppercase tracking-[0.4em]">Metadata Analysis</h4>
+                        <h4 className="text-[11px] font-black text-purple-400 mb-8 uppercase tracking-[0.4em]">{t('metadataAnalysis')}</h4>
                         <div className="space-y-6">
                           {Object.entries(selectedSkill.metadata || {}).map(([key, value]) => {
                             if (['name', 'description'].includes(key)) return null;
@@ -382,7 +396,7 @@ const Dashboard = ({ skills, onReset, onUpload }) => {
                >
                  <Package className="w-32 h-32 mb-8 opacity-5" />
                </motion.div>
-               <p className="text-2xl font-black uppercase tracking-[0.2em] opacity-10">Select a Skill Package</p>
+               <p className="text-2xl font-black uppercase tracking-[0.2em] opacity-10">{t('selectAPackage')}</p>
             </div>
           )}
         </AnimatePresence>
@@ -390,5 +404,6 @@ const Dashboard = ({ skills, onReset, onUpload }) => {
     </div>
   );
 };
+
 
 export default Dashboard;
