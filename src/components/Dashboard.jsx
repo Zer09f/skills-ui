@@ -113,7 +113,9 @@ const Dashboard = ({ skills, onReset }) => {
               <div className="p-2.5 bg-gradient-to-br from-purple-500/20 to-purple-500/5 rounded-xl border border-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
                 <Sparkles className="w-5 h-5 text-purple-400" />
               </div>
-              <h2 className="text-2xl font-black tracking-tighter text-gradient-neon">Skill Hub</h2>
+              <h2 className="text-2xl font-black tracking-tighter">
+                <span className="text-gradient-silver">Skill</span> <span className="text-gradient-neon">Hub</span>
+              </h2>
             </motion.div>
           )}
           <button 

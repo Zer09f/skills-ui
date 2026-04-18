@@ -57,7 +57,7 @@ const UploadZone = ({ onUpload, isLoading, error }) => {
           Neural Visualization Engine
         </div>
         <h1 className="text-7xl md:text-9xl font-black mb-8 tracking-tighter leading-[0.85] text-white">
-          SKILL <span className="text-gradient-neon">VISUALIZER</span>
+          <span className="text-gradient-silver">SKILL</span> <span className="text-gradient-neon">VISUALIZER</span>
         </h1>
         <p className="text-zinc-500 text-xl md:text-2xl max-w-3xl mx-auto font-light leading-relaxed tracking-tight">
           Professional management for your agent skill packages. <br className="hidden md:block" />
@@ -111,7 +111,7 @@ const UploadZone = ({ onUpload, isLoading, error }) => {
         )}
       </motion.div>
 
-      <div className="mt-24 flex items-center gap-12 relative z-10 opacity-30 hover:opacity-100 transition-all duration-700 cursor-default">
+      <div className="mt-24 flex items-center gap-12 relative z-10 animate-breathe hover:opacity-100 transition-all duration-700 cursor-default">
         <div className="flex items-center gap-4 text-zinc-400 text-xs font-black uppercase tracking-[0.5em]">
           <FileArchive className="w-4 h-4 text-purple-600" />
           <span>Secured Edge Parsing</span>
