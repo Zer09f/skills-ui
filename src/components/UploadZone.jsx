@@ -26,11 +26,12 @@ const BackgroundBlobs = () => (
   </div>
 );
 
-const UploadZone = ({ onUpload, isLoading, error }) => {
+const UploadZone = ({ onUpload, isLoading, error, lang, setLang, t }) => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file && file.name.endsWith('.zip')) {
       onUpload(file);
+      e.target.value = ''; // Reset to allow re-selection
     }
   };
 
@@ -46,6 +47,17 @@ const UploadZone = ({ onUpload, isLoading, error }) => {
     <div className="relative flex flex-col items-center justify-center min-h-screen p-8 bg-black overflow-hidden font-sans selection:bg-purple-500/30">
       <BackgroundBlobs />
 
+      {/* Language Toggle */}
+      <div className="absolute top-10 right-10 flex gap-2 z-30">
+        <button
+          onClick={() => setLang(lang === 'zh' ? 'en' : 'zh')}
+          className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all text-[10px] font-black tracking-widest uppercase text-zinc-400 hover:text-white"
+        >
+          <div className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse" />
+          {lang === 'zh' ? 'English' : '中文'}
+        </button>
+      </div>
+
       <motion.div 
         initial={{ opacity: 0, scale: 0.9, y: 30 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -54,15 +66,15 @@ const UploadZone = ({ onUpload, isLoading, error }) => {
       >
         <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[11px] font-black uppercase tracking-[0.4em] mb-12 shadow-[0_0_20px_rgba(168,85,247,0.1)]">
           <Sparkles className="w-3.5 h-3.5" />
-          Neural Visualization Engine
+          {t('visualizer')} {lang === 'zh' ? '引擎' : 'Engine'}
         </div>
         <h1 className="text-7xl md:text-9xl font-black mb-8 tracking-tighter leading-[0.85] text-white">
-          <span className="text-gradient-silver">SKILL</span> <span className="text-gradient-neon">VISUALIZER</span>
+          <span className="text-gradient-silver">SKILL</span> <span className="text-gradient-neon">{lang === 'zh' ? '可视化' : 'VISUALIZER'}</span>
         </h1>
         <p className="text-zinc-500 text-xl md:text-2xl max-w-3xl mx-auto font-light leading-relaxed tracking-tight">
-          Professional management for your agent skill packages. <br className="hidden md:block" />
-          Drop your .zip and unlock the technical core.
+          {t('description')}
         </p>
+
       </motion.div>
 
       <motion.div
@@ -93,9 +105,9 @@ const UploadZone = ({ onUpload, isLoading, error }) => {
         </div>
 
         <h3 className="text-4xl font-black mb-4 tracking-tight text-white transition-colors duration-500 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-purple-400">
-          {isLoading ? 'ANALYZING ENGINE...' : 'UPLOAD SKILL PACKAGE'}
+          {isLoading ? t('analyzing') : t('uploadTitle')}
         </h3>
-        <p className="text-zinc-500 font-bold uppercase tracking-[0.2em] text-sm">Industrial Standard .ZIP Required</p>
+        <p className="text-zinc-500 font-bold uppercase tracking-[0.2em] text-sm">{t('uploadSub')}</p>
 
         {error && (
           <motion.div 
@@ -114,13 +126,14 @@ const UploadZone = ({ onUpload, isLoading, error }) => {
       <div className="mt-24 flex items-center gap-12 relative z-10 animate-breathe hover:opacity-100 transition-all duration-700 cursor-default">
         <div className="flex items-center gap-4 text-zinc-400 text-xs font-black uppercase tracking-[0.5em]">
           <FileArchive className="w-4 h-4 text-purple-600" />
-          <span>Secured Edge Parsing</span>
+          <span>{t('securedEdge')}</span>
         </div>
         <div className="w-1.5 h-1.5 bg-purple-500/40 rounded-full" />
-        <div className="text-zinc-700 text-[10px] font-black tracking-widest uppercase">CORE.SYSTEM.V3.STABLE</div>
+        <div className="text-zinc-700 text-[10px] font-black tracking-widest uppercase">{t('systemStable')}</div>
       </div>
     </div>
   );
 };
+
 
 export default UploadZone;

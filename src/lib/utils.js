@@ -72,17 +72,19 @@ export async function processZip(file) {
  * Parses SKILL.md content to extract YAML frontmatter and Markdown body.
  */
 function parseSkillMd(content) {
-  const match = content.match(/^---([\s\S]*?)---([\s\S]*)$/);
+  // Relaxed regex to handle leading whitespace/BOM and trailing content
+  const match = content.match(/^\s*---([\s\S]*?)---\s*([\s\S]*)$/);
   if (match) {
     try {
       const metadata = yaml.load(match[1]);
-      return { metadata, content: match[2].trim() };
+      return { metadata: metadata || {}, content: match[2].trim() };
     } catch (e) {
       console.error('Failed to parse YAML frontmatter', e);
     }
   }
   return { metadata: { name: 'Unknown' }, content };
 }
+
 
 /**
  * Generates SKILL.md content from metadata and readme.
@@ -100,7 +102,7 @@ export function generateSkillMd(metadata, readme) {
 /**
  * Analyzes health of a skill.
  */
-export function analyzeSkillHealth(skill) {
+export function analyzeSkillHealth(skill, t) {
   const issues = [];
   let score = 100;
 
@@ -108,19 +110,19 @@ export function analyzeSkillHealth(skill) {
   const readme = skill.readme || '';
 
   if (!metadata.name || metadata.name === 'Unknown') {
-    issues.push({ level: 'error', message: '缺少有效的技能名称 (name)' });
+    issues.push({ level: 'error', message: t('issueName') });
     score -= 30;
   }
   if (!metadata.description) {
-    issues.push({ level: 'warning', message: '缺少技能描述 (description)' });
+    issues.push({ level: 'warning', message: t('issueDesc') });
     score -= 20;
   }
   if (readme.length < 100) {
-    issues.push({ level: 'info', message: '说明文档内容较少，建议补充更详细的指令说明' });
+    issues.push({ level: 'info', message: t('issueReadme') });
     score -= 10;
   }
   if (!metadata.version) {
-    issues.push({ level: 'info', message: '建议定义版本号 (version) 以便于管理' });
+    issues.push({ level: 'info', message: t('issueVersion') });
     score -= 5;
   }
 
@@ -131,8 +133,63 @@ export function analyzeSkillHealth(skill) {
   };
 }
 
+
+/**
+ * Infers category and icon based on skill content.
+ */
+export function getSkillVisuals(skill) {
+  const text = (skill.name + ' ' + (skill.metadata?.description || '')).toLowerCase();
+  
+  if (text.includes('translate') || text.includes('language') || text.includes('多语言')) {
+    return { categoryKey: 'catTranslation', icon: 'Languages', color: 'from-blue-500 to-cyan-400' };
+  }
+  if (text.includes('code') || text.includes('dev') || text.includes('program') || text.includes('代码')) {
+    return { categoryKey: 'catDevelopment', icon: 'Terminal', color: 'from-emerald-500 to-teal-400' };
+  }
+  if (text.includes('image') || text.includes('vision') || text.includes('draw') || text.includes('图片')) {
+    return { categoryKey: 'catVisualArt', icon: 'Image', color: 'from-purple-500 to-pink-400' };
+  }
+  if (text.includes('search') || text.includes('web') || text.includes('find') || text.includes('搜索')) {
+    return { categoryKey: 'catIntelligence', icon: 'Globe', color: 'from-orange-500 to-amber-400' };
+  }
+  if (text.includes('write') || text.includes('copy') || text.includes('creative') || text.includes('写作')) {
+    return { categoryKey: 'catContent', icon: 'PenTool', color: 'from-rose-500 to-orange-400' };
+  }
+  
+  return { categoryKey: 'catGeneral', icon: 'Zap', color: 'from-purple-500 to-indigo-400' };
+}
+
+/**
+ * Extracts top keywords for badges.
+ */
+export function extractKeywords(skill) {
+  const desc = (skill.metadata?.description || '').toLowerCase();
+  const name = skill.name.toLowerCase();
+  const combined = name + ' ' + desc;
+  
+  const keywordMap = [
+    { key: 'kwExpert', matches: ['expert', 'pro', '专家', '专业'] },
+    { key: 'kwLogic', matches: ['logic', 'reasoning', '逻辑', '推理'] },
+    { key: 'kwApi', matches: ['api', 'integration', '接口', '集成'] },
+    { key: 'kwAutomation', matches: ['automation', 'workflow', '自动化', '流程'] },
+    { key: 'kwCreative', matches: ['creative', 'art', '创作', '艺术'] },
+    { key: 'kwAnalysis', matches: ['analysis', 'data', '分析', '数据'] },
+    { key: 'kwSecure', matches: ['secure', 'safe', '安全', '可靠'] },
+    { key: 'kwStable', matches: ['stable', 'v3', '核心', '稳定'] },
+    { key: 'kwFast', matches: ['fast', 'quick', '高效', '快速'] }
+  ];
+  
+  const foundKeys = keywordMap
+    .filter(item => item.matches.some(m => combined.includes(m)))
+    .map(item => item.key);
+
+  return Array.from(new Set(foundKeys)).slice(0, 3);
+}
+
+
 /**
  * Exports a single skill folder as a new ZIP file.
+... (existing rest of file)
  * Now supports optional updated metadata/readme from editor.
  */
 export async function exportSkill(skill, updatedData = null) {
@@ -143,14 +200,17 @@ export async function exportSkill(skill, updatedData = null) {
   const skillMdContent = generateSkillMd(metadata, readme);
 
   for (const [relativePath, zipEntry] of Object.entries(skill.files)) {
-    // If it's a SKILL.md file, use the newly generated content
-    if (relativePath.endsWith('SKILL.md')) {
+    // Determine if this is the core SKILL.md (either at root or the only child of a nested root)
+    const isRootSkillMd = relativePath === 'SKILL.md';
+    
+    if (isRootSkillMd) {
       newZip.file(relativePath, skillMdContent);
     } else {
       const content = await zipEntry.async('blob');
       newZip.file(relativePath, content);
     }
   }
+
 
   const blob = await newZip.generateAsync({ type: 'blob' });
   const url = URL.createObjectURL(blob);
